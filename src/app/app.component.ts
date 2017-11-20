@@ -19,9 +19,9 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.as.authState.subscribe(user => {
-      console.log('authState change', user)
+      // console.log('authState change', user)
       if(user){
-        console.log('statechange navigate to secrets')
+        // console.log('statechange navigate to secrets')
         this.secrets()
       } else {
         this.login()
