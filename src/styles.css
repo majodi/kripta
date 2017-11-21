@@ -2,9 +2,9 @@
 
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
 
-body {
+/* body {
     background-color: lightgray
-}
+} */
 
 .spacer {
     -webkit-box-flex: 1;
@@ -19,5 +19,11 @@ body {
 }
 
 .main-content {
-    margin-top: 55px;
+    /* margin-top: 55px; */
+    position:absolute;
+    top: 55px;
+    left:0px;
+    right:0px;
+    bottom:0px;
+    overflow-y:scroll;     
 }
