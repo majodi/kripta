@@ -14,7 +14,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { SecretsComponent } from './secrets/secrets.component';
 import { LoginComponent } from './login/login.component';
 import { DialogUpdateSecretDialog } from './secrets/secrets.component';
-import { CryptoService } from './providers/crypto.service'
+import { CryptoService } from './providers/crypto.service';
+import { DbService } from './providers/db.service'
 
 @NgModule({
   declarations: [
@@ -36,7 +37,7 @@ import { CryptoService } from './providers/crypto.service'
   entryComponents: [
     DialogUpdateSecretDialog
   ],
-  providers: [AuthService, CryptoService],
+  providers: [AuthService, CryptoService, DbService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

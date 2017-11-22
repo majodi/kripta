@@ -11,9 +11,7 @@ export class AuthService {
   constructor(private auth: AngularFireAuth) {
     this.authState = auth.authState
     auth.authState.subscribe(user => {
-      // if(user) {
-        console.log('state: ', user); this.user = user        
-      // }
+      console.log('state: ', user); this.user = user        
     })
   }
 
