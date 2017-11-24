@@ -6,9 +6,10 @@
       <button mat-menu-item (click)="logout()"> Logout </button>
       <button mat-menu-item (click)="secrets()"> Secrets </button>
   </mat-menu>  
-  <button mat-icon-button [matMenuTriggerFor]="appMenu">
+  <img src="{{photoURL}}" style="border-radius: 50%; width:40px" alt="Avatar" [matMenuTriggerFor]="appMenu">
+  <!-- <button mat-icon-button [matMenuTriggerFor]="appMenu">
     <mat-icon>more_vert</mat-icon>
-  </button>
+  </button> -->
 </mat-toolbar>
 <div class="main-content">
     <router-outlet></router-outlet>    

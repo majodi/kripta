@@ -1,4 +1,5 @@
 import { Observable } from 'rxjs/Rx';
+import { Subject } from 'rxjs/Subject';
 import { Injectable } from '@angular/core';
 import { AngularFireAuth } from 'angularfire2/auth';
 import * as firebase from 'firebase/app';
@@ -7,11 +8,14 @@ import * as firebase from 'firebase/app';
 export class AuthService {
   authState: Observable<firebase.User>
   user: firebase.User
+  password: string = ''
+  password$ = new Subject<string>()
+  
 
   constructor(private auth: AngularFireAuth) {
     this.authState = auth.authState
     auth.authState.subscribe(user => {
-      console.log('state: ', user); this.user = user        
+      this.user = user
     })
   }
 

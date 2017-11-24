@@ -4,9 +4,10 @@ import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
 
 import { AngularFirestore } from 'angularfire2/firestore';
 
-import { Secrets } from '../models/secrets';
+import { Secret } from '../models/secrets';
 import { AuthService } from '../providers/auth.service';
 import { DbService } from '../providers/db.service';
+import { CryptoService } from '../providers/crypto.service';
 
 @Component({
   selector: 'app-secrets',
@@ -14,8 +15,8 @@ import { DbService } from '../providers/db.service';
   styleUrls: ['./secrets.component.css']
 })
 export class SecretsComponent implements OnInit {
-  secrets: Array<Secrets> = []
-  secret: Secrets
+  secrets: Array<Secret> = []
+  secret: Secret
   
   constructor(
     private db: DbService,
@@ -23,25 +24,10 @@ export class SecretsComponent implements OnInit {
     public dialog: MatDialog
   ) { }
 
-  ngOnInit() {
-    this.as.authState.subscribe(user => {
-      console.log('0-', user.uid)
-      // this.db.collection<Secrets>('secrets', ref => ref.limit(300).where('uid','==',user.uid))
-
-      this.db.secretCollectionRef
-      .stateChanges(['added']).map(secrets => {
-        {
-          secrets.forEach(secret => {
-              const data = secret.payload.doc.data() as Secrets //decrypt before adding to the view
-              const id = secret.payload.doc.id
-              this.secrets.push({id, ...data})
-          })
-        }}).subscribe()
-    })
-  }
+  ngOnInit() {this.db.getSecrets(this.secrets)}
 
   addSecret() {
-    this.secret = <Secrets>{}
+    this.secret = <Secret>{payload: {}}
     let dialogRef = this.openDialog(this.secret)
     dialogRef.afterClosed().subscribe(result => {
       console.log(result, this.secret)
@@ -74,7 +60,7 @@ export class SecretsComponent implements OnInit {
       }
     });
     dialogRef.keydownEvents().subscribe(k => {
-      if(k.key=='Enter'){
+      if((k.key=='Enter') && (k.target.tagName!='TEXTAREA')){
         dialogRef.close('save')
       }
     })
@@ -100,12 +86,25 @@ export class SecretsComponent implements OnInit {
 export class DialogUpdateSecretDialog {
   newrecord = false
   deleteState = false
-  passwordHide = true  
+  passwordHide = true
+  passwordStrength = ''
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: any) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private cs: CryptoService
+  ) {
     if(Object.keys(data).length === 0 && data.constructor === Object){
       this.newrecord = true
     }
   }
 
+  noteEnterKey(e) {
+    console.log('enter key')
+    e.preventDefault()
+  }
+
+  passwordScore(e) {
+    // console.log(e.target.value, ' - ', this.cs.scorePassword(e.target.value))
+    this.passwordStrength = this.cs.checkPasswordStrength(e.target.value)
+  }
 }
