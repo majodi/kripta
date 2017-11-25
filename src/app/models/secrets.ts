@@ -1,20 +1,15 @@
 export interface Secret {
-    id: string;
+    id?: string;
     uid?: string;
     title?: string;
     payload?: Payload;
-    // subtitle?: string;
-    // url?: string;
-    // username?: string;
-    // password?: string;
-    // note?: string;
   }
 
   export interface EncSecret {
-    // id: string;
+    id?: string;
     uid?: string;
     title?: string;
-    payload?: string; //encoded
+    payload?: string; //encoded >> string <<
   }
 
   export interface Payload {

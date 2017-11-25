@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, Inject, OnInit, Pipe, PipeTransform } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
 
@@ -9,6 +9,17 @@ import { AuthService } from '../providers/auth.service';
 import { DbService } from '../providers/db.service';
 import { CryptoService } from '../providers/crypto.service';
 
+@Pipe({ name: 'filter' })
+export class FilterPipe implements PipeTransform {
+  public transform(values: Secret[], filter: string): any[] {
+    if (!values || !values.length) return [];
+    if (!filter) return values;
+
+    return values.filter(secret => secret.title.indexOf(filter) >= 0);
+  }
+}
+//|| (secret.payload.subtitle.indexOf(filter) >= 0) || (secret.payload.url.indexOf(filter) >= 0) || (secret.payload.note.indexOf(filter) >= 0))
+
 @Component({
   selector: 'app-secrets',
   templateUrl: './secrets.component.html',
@@ -17,6 +28,7 @@ import { CryptoService } from '../providers/crypto.service';
 export class SecretsComponent implements OnInit {
   secrets: Array<Secret> = []
   secret: Secret
+  search: string = ''
   
   constructor(
     private db: DbService,
@@ -27,12 +39,11 @@ export class SecretsComponent implements OnInit {
   ngOnInit() {this.db.getSecrets(this.secrets)}
 
   addSecret() {
-    this.secret = <Secret>{payload: {}}
+    this.secret = <Secret>{uid: this.as.user.uid, payload: {}}
     let dialogRef = this.openDialog(this.secret)
     dialogRef.afterClosed().subscribe(result => {
-      console.log(result, this.secret)
       if(result=='save'){
-        this.db.addSecret(this.secret) //encrypt before DB write in service
+        this.db.addSecret(this.secret)
       }
     })
     dialogRef.keydownEvents().subscribe(k => {
@@ -81,7 +92,16 @@ export class SecretsComponent implements OnInit {
 @Component({
   selector: 'dialog-update-secret-dialog',
   templateUrl: 'dialog-update-secret-dialog.html',
-  styles: ['.form-container {display: flex; flex-direction: column;} .form-container > * {width: 100%;}']
+  // styles: ['.form-container {display: flex; flex-direction: column;} .form-container > * {width: 100%;} .tooshort {color:red}']
+  styles: [`
+  .form-container {display: flex; flex-direction: column;}
+  .form-container > * {width: 100%;}
+  .verystrong{color: greenyellow}
+  .strong{color: lightgreen}
+  .average{color: gold}
+  .weak{color: salmon}
+  .tooshort{color: red}
+`],
 })
 export class DialogUpdateSecretDialog {
   newrecord = false
@@ -104,7 +124,21 @@ export class DialogUpdateSecretDialog {
   }
 
   passwordScore(e) {
-    // console.log(e.target.value, ' - ', this.cs.scorePassword(e.target.value))
     this.passwordStrength = this.cs.checkPasswordStrength(e.target.value)
   }
+
+  copyText (text) {
+    let element = document.createElement('textarea');
+    element.value = text;
+    document.body.appendChild(element);
+    element.focus();
+    element.setSelectionRange(0, element.value.length);
+    document.execCommand('copy');
+    document.body.removeChild(element);
+  }
+
+  openURL(URL){
+    window.open(URL)
+  }
+
 }

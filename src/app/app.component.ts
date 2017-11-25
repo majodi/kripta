@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { OnInit } from '@angular/core/src/metadata/lifecycle_hooks';
+import { MatSnackBar } from '@angular/material';
 
 import { AuthService } from './providers/auth.service';
-import { OnInit } from '@angular/core/src/metadata/lifecycle_hooks';
+import { CryptoService } from './providers/crypto.service';
 
 @Component({
   selector: 'app-root',
@@ -15,10 +17,13 @@ export class AppComponent implements OnInit {
 
   constructor(
     private router: Router,
-    private as: AuthService
+    private as: AuthService,
+    private crypto: CryptoService,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
+
     this.as.authState.subscribe(user => {
       console.log(user)
       if(user){
@@ -35,11 +40,18 @@ export class AppComponent implements OnInit {
         this.login()
       }
     })
+
     this.as.password$.subscribe(password => {
       console.log('pw:', password)
       if(password && password != ''){
         this.secrets()        
       }
+    })
+
+    this.crypto.cryptoError$.subscribe(error => {
+      // console.log('crypto error:', error)
+      let snackBarRef = this.snackBar.open('Crypto error ('+error+'), is your password correct?', 'Dismiss');
+      this.login()
     })
 
   }

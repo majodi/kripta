@@ -3,6 +3,8 @@ import { AuthService } from '../providers/auth.service';
 import { Router } from '@angular/router';
 import { FormControl, Validators } from '@angular/forms';
 
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -16,7 +18,8 @@ export class LoginComponent implements OnInit {
   
   constructor(
     private as: AuthService,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog
   ) { }
 
   ngOnInit() {
@@ -33,9 +36,19 @@ export class LoginComponent implements OnInit {
   }
 
   revealSecrets() {
-    if((this.password !== null && this.password !== ''))
-    this.as.password = this.password
-    this.as.password$.next(this.password)
+    if((this.password !== null && this.password !== '')){
+      this.as.password = this.password
+      this.as.password$.next(this.password)  
+    }
+  }
+
+  learnMore() {
+    this.dialog.open(DialogLearnMoreDialog,
+      {
+        height: '400px',
+        width: '600px',
+      }
+    )
   }
 
   loginGoogle() {
@@ -45,5 +58,16 @@ export class LoginComponent implements OnInit {
   logout() {
     this.as.logout()
   }
+
+}
+
+@Component({
+  selector: 'dialog-learn-more-dialog',
+  templateUrl: 'dialog-learn-more-dialog.html',
+  styles: [],
+})
+export class DialogLearnMoreDialog {
+
+  constructor() {}
 
 }

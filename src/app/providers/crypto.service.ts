@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Rx';
+import { Subject } from 'rxjs/Subject';
 
 @Injectable()
 export class CryptoService {
-
+  cryptoError$ = new Subject<string>()
+  
   constructor() {}
 
   async aesGcmEncrypt(plaintext, password) {
@@ -66,16 +69,17 @@ export class CryptoService {
   }
 
   checkPasswordStrength(pass) {
-    console.log('check ', pass)
     let score = this.scorePassword(pass);
     if (score > 80)
-        return "strong";
+        return "very strong";
     if (score > 60)
-        return "good";
-    if (score >= 30)
+        return "strong";
+    if (score >= 40)
+        return "average";
+    if (score >= 25)
         return "weak";
 
-    return "why even bother";
+    return "too short";
   }
 
 }
