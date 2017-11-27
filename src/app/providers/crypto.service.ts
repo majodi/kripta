@@ -2,6 +2,11 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs/Rx';
 import { Subject } from 'rxjs/Subject';
 
+// interface Window {
+//   Math: typeof Math;
+//   TextDecoder: any; //typeof TextDecoder;
+// }
+
 @Injectable()
 export class CryptoService {
   cryptoError$ = new Subject<string>()
@@ -9,12 +14,16 @@ export class CryptoService {
   constructor() {}
 
   async aesGcmEncrypt(plaintext, password) {
-    const pwUtf8 = new TextEncoder().encode(password);                                 // encode password as UTF-8
+    const pwUtf8 = new window.TextEncoder().encode(password);                                 // encode password as UTF-8
     const pwHash = await crypto.subtle.digest('SHA-256', pwUtf8);                      // hash the password
-    const iv = crypto.getRandomValues(new Uint8Array(12));                             // get 96-bit random iv
+
+    const iv = new Uint8Array(12)
+    crypto.getRandomValues(iv)
+
+    // const iv = crypto.getRandomValues(new Uint8Array(12));                             // get 96-bit random iv
     const alg = { name: 'AES-GCM', iv: iv };                                           // specify algorithm to use
     const key = await crypto.subtle.importKey('raw', pwHash, alg, false, ['encrypt']); // generate key from pw
-    const ptUint8 = new TextEncoder().encode(plaintext);                               // encode plaintext as UTF-8
+    const ptUint8 = new window.TextEncoder().encode(plaintext);                               // encode plaintext as UTF-8
     const ctBuffer = await crypto.subtle.encrypt(alg, key, ptUint8);                   // encrypt plaintext using key
     const ctArray = Array.from(new Uint8Array(ctBuffer));                              // ciphertext as byte array
     const ctStr = ctArray.map(byte => String.fromCharCode(byte)).join('');             // ciphertext as string
@@ -22,9 +31,10 @@ export class CryptoService {
     const ivHex = Array.from(iv).map(b => ('00' + b.toString(16)).slice(-2)).join(''); // iv as hex string
     return ivHex+ctBase64;                                                             // return iv+ciphertext
   }
+
   
   async aesGcmDecrypt(ciphertext, password) {
-    const pwUtf8 = new TextEncoder().encode(password);                                 // encode password as UTF-8
+    const pwUtf8 = new window.TextEncoder().encode(password);                                 // encode password as UTF-8
     const pwHash = await crypto.subtle.digest('SHA-256', pwUtf8);                      // hash the password
     let iv = []
     for(let i=0;i<24;i=i+2){iv.push(parseInt(ciphertext.slice(i,i+2),16))}
@@ -35,7 +45,7 @@ export class CryptoService {
     for(let i=0;i<ctStr.length;i++){ctArr.push(ctStr.charCodeAt(i))}
     let ctUint8 = Uint8Array.from(ctArr)
     const plainBuffer = await crypto.subtle.decrypt(alg, key, ctUint8);                // decrypt ciphertext using key
-    const plaintext = new TextDecoder().decode(plainBuffer);                           // decode password from UTF-8
+    const plaintext = new (<any>window).TextDecoder().decode(plainBuffer);                           // decode password from UTF-8
     return plaintext;                                                                  // return the plaintext
   }
 

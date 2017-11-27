@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../providers/auth.service';
 import { Router } from '@angular/router';
 import { FormControl, Validators } from '@angular/forms';
+// import {HttpClient} from '@angular/common/http';
 
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
 
@@ -19,7 +20,8 @@ export class LoginComponent implements OnInit {
   constructor(
     private as: AuthService,
     private router: Router,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    // private http: HttpClient
   ) { }
 
   ngOnInit() {
@@ -57,6 +59,16 @@ export class LoginComponent implements OnInit {
 
   logout() {
     this.as.logout()
+  }
+
+  test() {
+    // this.http.get('https://www.nickstick.nl/index.html', {responseType: 'text'}).subscribe(data => console.log(data))
+    fetch('https://www.nickstick.nl/index.html', {
+      mode: 'no-cors'
+    })
+    .then(r => r.text().then(d => console.log(d)))
+    // .then(data => console.log(data))
+    // .catch(e => console.log("Booo"))
   }
 
 }

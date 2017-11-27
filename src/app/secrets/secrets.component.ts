@@ -1,6 +1,7 @@
-import { Component, Inject, OnInit, Pipe, PipeTransform } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, Pipe, PipeTransform, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
+import { ObservableMedia } from '@angular/flex-layout'
+import { MatGridList, MatDialog, MAT_DIALOG_DATA } from '@angular/material';
 
 import { AngularFirestore } from 'angularfire2/firestore';
 
@@ -9,16 +10,20 @@ import { AuthService } from '../providers/auth.service';
 import { DbService } from '../providers/db.service';
 import { CryptoService } from '../providers/crypto.service';
 
+import * as _ from 'lodash';
+
 @Pipe({ name: 'filter' })
 export class FilterPipe implements PipeTransform {
   public transform(values: Secret[], filter: string): any[] {
     if (!values || !values.length) return [];
     if (!filter) return values;
-
-    return values.filter(secret => secret.title.indexOf(filter) >= 0);
+    return values.filter(secret => {
+      return ((secret.title && secret.title.indexOf(filter) >= 0)||
+      (secret.payload.subtitle && secret.payload.subtitle.indexOf(filter) >= 0)||
+      (secret.payload.url && secret.payload.url.indexOf(filter) >= 0)||
+      (secret.payload.note && secret.payload.note.indexOf(filter) >= 0))});
   }
 }
-//|| (secret.payload.subtitle.indexOf(filter) >= 0) || (secret.payload.url.indexOf(filter) >= 0) || (secret.payload.note.indexOf(filter) >= 0))
 
 @Component({
   selector: 'app-secrets',
@@ -26,6 +31,7 @@ export class FilterPipe implements PipeTransform {
   styleUrls: ['./secrets.component.css']
 })
 export class SecretsComponent implements OnInit {
+  @ViewChild('grid') grid: MatGridList;
   secrets: Array<Secret> = []
   secret: Secret
   search: string = ''
@@ -33,10 +39,16 @@ export class SecretsComponent implements OnInit {
   constructor(
     private db: DbService,
     private as: AuthService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    private media: ObservableMedia
   ) { }
 
-  ngOnInit() {this.db.getSecrets(this.secrets)}
+  ngOnInit() {
+    this.db.getSecrets(this.secrets)
+    // ObservableMedia does not fire on init so you have to manually update the grid first.
+    // this.updateGrid();
+    this.media.subscribe(change => { this.updateGrid(); });
+  }
 
   addSecret() {
     this.secret = <Secret>{uid: this.as.user.uid, payload: {}}
@@ -55,7 +67,7 @@ export class SecretsComponent implements OnInit {
 
   updateSecret(i) {
     let secret = this.secrets[i]
-    let savedSecret = Object.assign({}, secret);
+    let savedSecret = _.cloneDeep(secret) //Object.assign({}, secret);
     let dialogRef = this.openDialog(secret)
     dialogRef.afterClosed().subscribe(result => {
       if(result=='save'){
@@ -70,11 +82,22 @@ export class SecretsComponent implements OnInit {
         }
       }
     });
-    dialogRef.keydownEvents().subscribe(k => {
+    dialogRef.keydownEvents().subscribe((k: any) => {
       if((k.key=='Enter') && (k.target.tagName!='TEXTAREA')){
         dialogRef.close('save')
       }
     })
+  }
+
+  updateGrid(): void {
+    // console.log(this.grid, this.media.isActive('sm'))
+    if(this.grid){
+      if (this.media.isActive('xl')) { this.grid.cols = 5; }
+      else if (this.media.isActive('lg')) { this.grid.cols = 4; }
+      else if (this.media.isActive('md')) { this.grid.cols = 3; }
+      else if (this.media.isActive('sm')) { this.grid.cols = 2; }
+      else if (this.media.isActive('xs')) { this.grid.cols = 1; }  
+    }
   }
 
   openDialog(data) {
@@ -119,7 +142,6 @@ export class DialogUpdateSecretDialog {
   }
 
   noteEnterKey(e) {
-    console.log('enter key')
     e.preventDefault()
   }
 

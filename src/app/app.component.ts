@@ -25,7 +25,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
 
     this.as.authState.subscribe(user => {
-      console.log(user)
+      // console.log(user)
       if(user){
         if(user.photoURL != ''){
           this.photoURL = user.photoURL
@@ -42,7 +42,7 @@ export class AppComponent implements OnInit {
     })
 
     this.as.password$.subscribe(password => {
-      console.log('pw:', password)
+      // console.log('pw:', password)
       if(password && password != ''){
         this.secrets()        
       }

@@ -28,7 +28,6 @@ export class DbService {
               let decData: Secret = {id: secret.payload.doc.id, uid: this.as.user.uid, title: encSecret.title, payload: decPayload}
               secretsArray.push(decData)
             }).catch(e => {
-              // console.log('error: ', e)
               this.cs.cryptoError$.next(e)
             })
           })
