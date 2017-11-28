@@ -10,6 +10,7 @@ export class AuthService {
   user: firebase.User
   password: string = ''
   password$ = new Subject<string>()
+  signInTimeOut$ = new Subject<string>()
   
 
   constructor(private auth: AngularFireAuth) {

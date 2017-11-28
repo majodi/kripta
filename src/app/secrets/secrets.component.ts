@@ -1,4 +1,4 @@
-import { Component, ElementRef, Inject, OnInit, Pipe, PipeTransform, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, AfterViewInit, Pipe, PipeTransform, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { ObservableMedia } from '@angular/flex-layout'
 import { MatGridList, MatDialog, MAT_DIALOG_DATA } from '@angular/material';
@@ -15,7 +15,7 @@ import * as _ from 'lodash';
 @Pipe({ name: 'filter' })
 export class FilterPipe implements PipeTransform {
   public transform(values: Secret[], filter: string): any[] {
-    if (!values || !values.length) return [];
+    if (!values || !values.length) return values//[]; <-- but then we need ngIf in div
     if (!filter) return values;
     return values.filter(secret => {
       return ((secret.title && secret.title.indexOf(filter) >= 0)||
@@ -30,7 +30,7 @@ export class FilterPipe implements PipeTransform {
   templateUrl: './secrets.component.html',
   styleUrls: ['./secrets.component.css']
 })
-export class SecretsComponent implements OnInit {
+export class SecretsComponent implements OnInit, AfterViewInit {
   @ViewChild('grid') grid: MatGridList;
   secrets: Array<Secret> = []
   secret: Secret
@@ -45,8 +45,12 @@ export class SecretsComponent implements OnInit {
 
   ngOnInit() {
     this.db.getSecrets(this.secrets)
+  }
+
+  ngAfterViewInit() {
     // ObservableMedia does not fire on init so you have to manually update the grid first.
     // this.updateGrid();
+    // console.log(this.grid) <-- shows twice !!! is this a memory leak? (the subscribe twice)
     this.media.subscribe(change => { this.updateGrid(); });
   }
 
@@ -55,7 +59,7 @@ export class SecretsComponent implements OnInit {
     let dialogRef = this.openDialog(this.secret)
     dialogRef.afterClosed().subscribe(result => {
       if(result=='save'){
-        this.db.addSecret(this.secret)
+        this.db.addSecret(this.secret).then(v => this.sortSecrets())
       }
     })
     dialogRef.keydownEvents().subscribe(k => {
@@ -71,14 +75,18 @@ export class SecretsComponent implements OnInit {
     let dialogRef = this.openDialog(secret)
     dialogRef.afterClosed().subscribe(result => {
       if(result=='save'){
-        this.db.updateSecret(secret) //encrypt before DB write in service
+        this.db.updateSecret(secret).then(v => this.sortSecrets())
       } else {
         if(result=='delete'){
           this.db.deleteSecret(secret.id).then(v => {
             this.secrets.splice(i, 1) //remove from view when successful
           })
-        } else {
-          this.secrets[i] = savedSecret //dialog cancelled          
+        } else { //dialog cancelled, put original back with new timestamp, sort local, then write new timestamp to DB
+          let now = new Date()          
+          savedSecret.last_access = now.toISOString()
+          this.secrets[i] = savedSecret
+          this.sortSecrets()
+          this.db.updateLastAccess(savedSecret)
         }
       }
     });
@@ -86,6 +94,14 @@ export class SecretsComponent implements OnInit {
       if((k.key=='Enter') && (k.target.tagName!='TEXTAREA')){
         dialogRef.close('save')
       }
+    })
+  }
+
+  sortSecrets() {
+    this.secrets.sort((a,b) => {
+      let both = a.last_access.slice(0,19)+b.last_access.slice(0,19)
+      let strip = both.replace(/-/gi,'').replace(/T/gi,'').replace(/:/gi,'')
+      return (Number(strip.slice(0,14)) - Number(strip.slice(14))) * -1
     })
   }
 
@@ -98,6 +114,21 @@ export class SecretsComponent implements OnInit {
       else if (this.media.isActive('sm')) { this.grid.cols = 2; }
       else if (this.media.isActive('xs')) { this.grid.cols = 1; }  
     }
+  }
+
+  urlImage(url) {
+    if(url == undefined || url.trim() == '') return './favicon.ico'
+    if (url.indexOf("://") > -1) {
+      // console.log('https://'+url.split('/')[2]+'./favicon.ico')
+      return 'https://'+url.split('/')[2]+'/favicon.ico'
+    } else {
+      // console.log('https://'+url.split('/')[0]+'./favicon.ico')
+      return 'https://'+url.split('/')[0]+'/favicon.ico'
+    }
+  }
+
+  clearSearch() {
+    this.search = ''
   }
 
   openDialog(data) {
@@ -160,6 +191,7 @@ export class DialogUpdateSecretDialog {
   }
 
   openURL(URL){
+    this.copyText(this.data.payload.password)
     window.open(URL)
   }
 

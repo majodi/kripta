@@ -1,5 +1,6 @@
 <div class="background">
-  <div class="sign-in" align="center">
+  <div *ngIf="!sign_inPending" class="sign-in" align="center">
+    <!-- {{sign_inPending}} -->
     <div *ngIf="!signed_in">
         <h4>Please let us know who you are</h4>
         <h4>Use your Google password to identify yourself</h4>
@@ -23,7 +24,11 @@
       <br><br>
     </div>
     <a mat-button align="right" (click)="learnMore()">Learn more...   </a>
-    <a mat-button align="right" (click)="test()">test</a>
     <br><br>
-  </div>    
+  </div>
+  <div *ngIf="sign_inPending" style="text-align:center; padding:30px" class="mat-typography">
+      <!-- {{sign_inPending}} -->
+      <h2 style="background-color:lightblue">  Waiting for authentication  </h2>
+      <mat-progress-bar mode="query"></mat-progress-bar>
+  </div>
 </div>

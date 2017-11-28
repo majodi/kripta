@@ -13,6 +13,8 @@ import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
 })
 export class LoginComponent implements OnInit {
   signed_in = false
+  sign_inPending = false
+  sign_inTimer: number
   passwordHide = true
   displayName = ''
   password = ''
@@ -26,15 +28,26 @@ export class LoginComponent implements OnInit {
 
   ngOnInit() {
     this.password = this.as.password
+    this.sign_inTimer = window.setTimeout(() => this.signInTimeOut(), 8000);
     this.as.authState.subscribe(user => {
       if(user) {
+        window.clearTimeout(this.sign_inTimer)
         this.signed_in = true
+        this.setSignInPending(false)
         this.displayName = this.as.user.displayName
       } else {
         this.signed_in = false
+        this.setSignInPending()
         this.displayName = 'unknown'
       }
     })
+  }
+
+  signInTimeOut() {
+    this.setSignInPending()                               //sync pending with localstorage
+    if(this.sign_inPending){                              //error after x seconds when we were waiting after sign-in
+      this.as.signInTimeOut$.next('sign-in time out')      
+    }
   }
 
   revealSecrets() {
@@ -54,21 +67,29 @@ export class LoginComponent implements OnInit {
   }
 
   loginGoogle() {
-    this.as.loginGoogle()
+    this.as.loginGoogle().then(v => {this.setSignInPending(true)})
   }
 
   logout() {
     this.as.logout()
   }
 
-  test() {
-    // this.http.get('https://www.nickstick.nl/index.html', {responseType: 'text'}).subscribe(data => console.log(data))
-    fetch('https://www.nickstick.nl/index.html', {
-      mode: 'no-cors'
-    })
-    .then(r => r.text().then(d => console.log(d)))
-    // .then(data => console.log(data))
-    // .catch(e => console.log("Booo"))
+  setSignInPending(forceState?) {
+    if(forceState!=undefined){
+      if(forceState==true){
+        localStorage.setItem('sign_in_pending', "1");
+        this.sign_inPending = true
+      } else {
+        localStorage.setItem('sign_in_pending', "0");
+        this.sign_inPending = false
+      }  
+    } else {
+      if(localStorage.getItem('sign_in_pending')=="1"){
+        this.sign_inPending = true
+      } else {
+        this.sign_inPending = false
+      }
+    }
   }
 
 }

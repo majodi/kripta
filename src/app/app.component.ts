@@ -54,6 +54,12 @@ export class AppComponent implements OnInit {
       this.login()
     })
 
+    this.as.signInTimeOut$.subscribe(error => {
+      // console.log('timeout error:', error)
+      let snackBarRef = this.snackBar.open('Time-out waiting for authentication, please try again?', 'Dismiss');
+      // this.login()
+    })
+
   }
 
   login() {

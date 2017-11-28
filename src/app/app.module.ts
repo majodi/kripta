@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NgModule } from '@angular/core';
 import { FlexLayoutModule } from "@angular/flex-layout";
 // import { HttpClientModule } from '@angular/common/http';
-import { MatGridListModule, MatSnackBarModule, MatInputModule, MatFormFieldModule, MatDialogModule, MatListModule, MatCardModule, MatButtonModule, MatMenuModule, MatToolbarModule, MatIconModule } from '@angular/material';
+import { MatProgressBarModule, MatGridListModule, MatSnackBarModule, MatInputModule, MatFormFieldModule, MatDialogModule, MatListModule, MatCardModule, MatButtonModule, MatMenuModule, MatToolbarModule, MatIconModule } from '@angular/material';
 import { AngularFireModule } from 'angularfire2';
 import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireAuthModule } from 'angularfire2/auth';
@@ -40,7 +40,7 @@ import { DbService } from './providers/db.service'
     AngularFireModule.initializeApp(environment.firebase),
     AngularFirestoreModule.enablePersistence(),
     AngularFireAuthModule,
-    MatGridListModule, MatSnackBarModule, MatInputModule, MatFormFieldModule, MatDialogModule, MatListModule, MatCardModule, MatButtonModule, MatMenuModule, MatToolbarModule, MatIconModule,
+    MatProgressBarModule, MatGridListModule, MatSnackBarModule, MatInputModule, MatFormFieldModule, MatDialogModule, MatListModule, MatCardModule, MatButtonModule, MatMenuModule, MatToolbarModule, MatIconModule,
   ],
   entryComponents: [
     DialogUpdateSecretDialog, DialogLearnMoreDialog
