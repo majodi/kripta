@@ -1,40 +1,70 @@
 import { Injectable } from '@angular/core';
 
-import { AngularFirestoreCollection, AngularFirestoreDocument, AngularFirestore } from 'angularfire2/firestore';
+import { AngularFirestoreCollection, AngularFirestoreDocument, AngularFirestore, DocumentChangeAction, Action } from 'angularfire2/firestore';
+import { Subject } from 'rxjs/Rx';
 
 import { Secret, EncSecret, Payload } from '../models/secrets';
 import { AuthService } from '../providers/auth.service';
 import { CryptoService } from '../providers/crypto.service';
+import { Observable } from 'rxjs/Observable';
+
+type FsAction = "added" | "modified" | "removed";
 
 @Injectable()
 export class DbService {
-  
+  export$ = new Subject<string>()
+  secrets$: Observable<Secret[]>
+
   constructor(
     private db: AngularFirestore,
     private as: AuthService,
-    private cs: CryptoService) {
+    private cs: CryptoService) {}
+
+  vaultEmpty() {
+    return this.db.collection<Secret>('secrets', ref => ref.where('uid','==',this.as.user.uid).limit(1)).valueChanges().map(v => {return v.length < 1})
   }
 
-  getSecrets(secretsArray) {
-
-    this.as.authState.subscribe(user => {
-      if(this.as.password !== null && this.as.password !== '' && this.as.user != undefined && this.as.user != null){
-        this.db.collection<Secret>('secrets', ref => ref.where('uid','==',this.as.user.uid).limit(300).orderBy('last_access','desc'))
-        .stateChanges(['added']).map(secrets => {
-          secrets.forEach(secret => {
-            const encSecret = secret.payload.doc.data() as EncSecret
-            this.cs.aesGcmDecrypt(encSecret.payload, this.as.password).then(payloadString => {
-              let decPayload: Payload = JSON.parse(payloadString)
-              let decData: Secret = {id: secret.payload.doc.id, uid: this.as.user.uid, last_access: encSecret.last_access, title: encSecret.title, payload: decPayload}
-              secretsArray.push(decData)
-            }).catch(e => {
-              this.cs.cryptoError$.next(e)
-            })
+  getSecrets(secretsArray: Array<Secret>) {
+    return this.db.collection<Secret>('secrets', ref => ref.where('uid','==',this.as.user.uid).limit(300).orderBy('last_access','desc'))
+    .stateChanges().map(secrets => {
+        secrets.forEach(secret => {
+          this.getDecodedData(secret).then(decData => {
+            if(decData) this.updateLocalArray(secretsArray, decData, secret.type);
           })
-        }).subscribe()
-      }
+        })
+        return secretsArray
     })
+  }
 
+  updateLocalArray(secretsArray: Array<Secret>, decData: Secret, action: FsAction) {
+    if(decData){
+      if(action=='added') secretsArray.push(decData)
+      else {
+        let obj = secretsArray.find((o, i) => {
+          if(o.id === decData.id) {
+            if(action=='modified') secretsArray[i] = decData
+            else secretsArray.splice(i,1)
+            return true // stop searching
+          }
+        })
+      }
+      secretsArray.sort((a,b) => {
+        let both = a.last_access.slice(0,19)+b.last_access.slice(0,19)
+        let strip = both.replace(/-/gi,'').replace(/T/gi,'').replace(/:/gi,'')
+        return (Number(strip.slice(0,14)) - Number(strip.slice(14))) * -1
+      })  
+    }
+  }
+
+  getDecodedData(secret: DocumentChangeAction) {
+    let encSecret = secret.payload.doc.data() as EncSecret
+    return this.cs.aesGcmDecrypt(encSecret.payload, this.as.password).then(payloadString => {
+      let decPayload: Payload = JSON.parse(payloadString)
+      let decData: Secret = {id: secret.payload.doc.id, uid: this.as.user.uid, last_access: encSecret.last_access, title: encSecret.title, payload: decPayload}
+      return decData
+    }).catch(e => {
+      this.cs.cryptoError$.next(e)
+    })
   }
 
   addSecret(data: Secret) {

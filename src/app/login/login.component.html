@@ -14,14 +14,22 @@
         <h4>{{displayName}}</h4>
     </div>
     <div *ngIf="signed_in">
-      <mat-form-field>
-        <input [(ngModel)]="password" matInput placeholder="Session Password" [type]="passwordHide ? 'password' : 'text'">
-        <mat-icon matSuffix (click)="passwordHide = !passwordHide">{{passwordHide ? 'visibility' : 'visibility_off'}}</mat-icon>
-        <mat-hint align="end">Your Kripta password</mat-hint>
-      </mat-form-field>
-      <br><br>
-      <button mat-raised-button style="color:black" (click)="revealSecrets()">Reveal My Secrets</button>
-      <br><br>
+      <div *ngIf="vaultEmpty" style="width:85%">
+        <h4 class="mat-caption">It looks like you're a new Kripta user (your vault is empty). To be able to encypt/decrypt data you will be using a Kripta password.</h4>
+        <h4 class="mat-caption">This password will NOT be saved anywhere, please pick a strong password you can remember well.</h4>
+      </div>
+      <div>
+        <form (submit)="revealSecrets()">
+          <mat-form-field>
+            <input [(ngModel)]="password" name="password" matInput placeholder="Session Password" [type]="passwordHide ? 'password' : 'text'">
+            <mat-icon matSuffix (click)="passwordHide = !passwordHide">{{passwordHide ? 'visibility' : 'visibility_off'}}</mat-icon>
+            <mat-hint align="end">Your Kripta password</mat-hint>
+          </mat-form-field>
+        </form>
+        <br><br>
+        <button mat-raised-button style="color:black" (click)="revealSecrets()" [disabled]="password == null || password == ''">{{vaultEmpty ? 'Create Some Secrets' : 'Reveal My Secrets'}}</button>
+        <br><br>
+      </div>
     </div>
     <a mat-button align="right" (click)="learnMore()">Learn more...   </a>
     <br><br>

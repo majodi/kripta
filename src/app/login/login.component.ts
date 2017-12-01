@@ -1,20 +1,24 @@
-import { Component, OnInit } from '@angular/core';
-import { AuthService } from '../providers/auth.service';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormControl, Validators } from '@angular/forms';
-// import {HttpClient} from '@angular/common/http';
-
 import { MatDialog, MAT_DIALOG_DATA } from '@angular/material';
+
+import { Subject, Subscription } from 'rxjs/Rx';
+
+import { AuthService } from '../providers/auth.service';
+import { DbService } from '../providers/db.service';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
+  private ngUnsubscribe = new Subject<string>()  
   signed_in = false
   sign_inPending = false
-  sign_inTimer: number
+  sign_inTimer: number = 0
+  vaultEmpty = false
   passwordHide = true
   displayName = ''
   password = ''
@@ -23,15 +27,20 @@ export class LoginComponent implements OnInit {
     private as: AuthService,
     private router: Router,
     private dialog: MatDialog,
-    // private http: HttpClient
+    private db: DbService
   ) { }
 
   ngOnInit() {
+    this.signed_in = false
+    this.setSignInPending()
+    this.displayName = 'unknown'
     this.password = this.as.password
-    this.sign_inTimer = window.setTimeout(() => this.signInTimeOut(), 8000);
-    this.as.authState.subscribe(user => {
+    this.as.authState.takeUntil(this.ngUnsubscribe).subscribe(user => {
       if(user) {
-        window.clearTimeout(this.sign_inTimer)
+        this.db.vaultEmpty().takeUntil(this.ngUnsubscribe).subscribe(v => {
+          this.vaultEmpty = v
+        })
+        if(this.sign_inTimer > 0){window.clearTimeout(this.sign_inTimer)}
         this.signed_in = true
         this.setSignInPending(false)
         this.displayName = this.as.user.displayName
@@ -44,10 +53,8 @@ export class LoginComponent implements OnInit {
   }
 
   signInTimeOut() {
-    this.setSignInPending()                               //sync pending with localstorage
-    if(this.sign_inPending){                              //error after x seconds when we were waiting after sign-in
-      this.as.signInTimeOut$.next('sign-in time out')      
-    }
+    this.setSignInPending(false)                         //reset state to try again
+    this.as.signInTimeOut$.next('sign-in time out')      //nog even uitzoeken of tijd te kort is
   }
 
   revealSecrets() {
@@ -67,7 +74,9 @@ export class LoginComponent implements OnInit {
   }
 
   loginGoogle() {
-    this.as.loginGoogle().then(v => {this.setSignInPending(true)})
+    this.setSignInPending(true)
+    this.sign_inTimer = window.setTimeout(() => this.signInTimeOut(), 15000);
+    this.as.loginGoogle()
   }
 
   logout() {
@@ -90,6 +99,11 @@ export class LoginComponent implements OnInit {
         this.sign_inPending = false
       }
     }
+  }
+
+  ngOnDestroy() {
+    this.ngUnsubscribe.next()
+    this.ngUnsubscribe.complete()
   }
 
 }

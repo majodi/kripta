@@ -2,9 +2,10 @@
 
 @import "~@angular/material/prebuilt-themes/indigo-pink.css";
 
-/* body {
-    background-color: lightgray
-} */
+body {
+    /* background-color: rgb(240, 165, 100); */
+    margin: 0px
+}
 
 .spacer {
     -webkit-box-flex: 1;

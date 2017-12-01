@@ -1,13 +1,16 @@
 <mat-toolbar class="fixed-top-left" color="primary">
-  {{title}}
+    <div (click)="about()">
+        {{title}}            
+    </div>
   <span class="spacer"></span>
   <mat-menu #appMenu="matMenu">
-      <button mat-menu-item (click)="login()"> Sign-in </button>
+      <button mat-menu-item (click)="login()" [disabled]="currentUrl == '/login'"> Sign-in </button>
       <button mat-menu-item (click)="logout()"> Sign-out </button>
-      <button mat-menu-item (click)="secrets()"> Secrets </button>
-  </mat-menu>  
+      <button mat-menu-item (click)="secrets()" [disabled]="currentUrl == '/secrets'"> Secrets </button>
+      <button mat-menu-item (click)="export()" [disabled]="currentUrl != '/secrets'"> Export </button>
+    </mat-menu>  
   <img src="{{photoURL}}" style="border-radius: 50%; width:40px" alt="Avatar" [matMenuTriggerFor]="appMenu">
 </mat-toolbar>
-<div class="main-content">
+<div class="main-content" style="background-color:azure">
     <router-outlet></router-outlet>    
 </div>

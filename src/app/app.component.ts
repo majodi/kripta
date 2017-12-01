@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 import { OnInit } from '@angular/core/src/metadata/lifecycle_hooks';
-import { MatSnackBar } from '@angular/material';
+import { MatDialog, MatSnackBar } from '@angular/material';
 
 import { AuthService } from './providers/auth.service';
 import { CryptoService } from './providers/crypto.service';
+import { RouterEvent } from '@angular/router/src/events';
+import { DbService } from './providers/db.service';
 
 @Component({
   selector: 'app-root',
@@ -12,14 +14,17 @@ import { CryptoService } from './providers/crypto.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  title = 'Kripta';
+  title = 'Kripta'
   photoURL = '../assets/noavatar.png'
+  currentUrl = ''
 
   constructor(
     private router: Router,
     private as: AuthService,
+    private db: DbService,
     private crypto: CryptoService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +65,13 @@ export class AppComponent implements OnInit {
       // this.login()
     })
 
+    this.router.events.subscribe(event => {
+      // console.log('routerevent', event);
+      if (event instanceof NavigationEnd ) {
+        this.currentUrl = event.url
+      }
+    })
+
   }
 
   login() {
@@ -73,4 +85,29 @@ export class AppComponent implements OnInit {
   secrets() {
     this.router.navigate(['/secrets']);
   }
+
+  export() {
+    this.db.export$.next('export')
+  }
+
+  about() {
+    this.dialog.open(DialogAboutDialog,
+      {
+        height: '400px',
+        width: '600px',
+      }
+    )
+  }  
+
+}
+
+@Component({
+  selector: 'dialog-about-dialog',
+  templateUrl: 'dialog-about-dialog.html',
+  styles: [],
+})
+export class DialogAboutDialog {
+
+  constructor() {}
+
 }

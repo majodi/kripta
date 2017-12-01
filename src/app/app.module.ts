@@ -10,7 +10,7 @@ import { AngularFirestoreModule } from 'angularfire2/firestore';
 import { AngularFireAuthModule } from 'angularfire2/auth';
 import { environment } from '../environments/environment';
 
-import { AppComponent } from './app.component';
+import { AppComponent, DialogAboutDialog } from './app.component';
 import { AuthService } from './providers/auth.service';
 import { AppRoutingModule } from './app-routing.module';
 import { SecretsComponent } from './secrets/secrets.component';
@@ -28,6 +28,7 @@ import { DbService } from './providers/db.service'
     LoginComponent,
     DialogLearnMoreDialog,
     DialogUpdateSecretDialog,
+    DialogAboutDialog,
     FilterPipe
   ],
   imports: [
@@ -43,7 +44,7 @@ import { DbService } from './providers/db.service'
     MatProgressBarModule, MatGridListModule, MatSnackBarModule, MatInputModule, MatFormFieldModule, MatDialogModule, MatListModule, MatCardModule, MatButtonModule, MatMenuModule, MatToolbarModule, MatIconModule,
   ],
   entryComponents: [
-    DialogUpdateSecretDialog, DialogLearnMoreDialog
+    DialogUpdateSecretDialog, DialogLearnMoreDialog, DialogAboutDialog
   ],
   providers: [AuthService, CryptoService, DbService],
   bootstrap: [AppComponent]
