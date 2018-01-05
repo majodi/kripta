@@ -25,10 +25,10 @@
             <mat-icon matSuffix (click)="passwordHide = !passwordHide">{{passwordHide ? 'visibility' : 'visibility_off'}}</mat-icon>
             <mat-hint align="end">Your Kripta password</mat-hint>
           </mat-form-field>
+          <br><br>
+          <button type="button" mat-raised-button style="color:black" (click)="revealSecrets()" [disabled]="password == null || password == ''">{{vaultEmpty ? 'Create Some Secrets' : 'Reveal My Secrets'}}</button>
+          <br><br>
         </form>
-        <br><br>
-        <button mat-raised-button style="color:black" (click)="revealSecrets()" [disabled]="password == null || password == ''">{{vaultEmpty ? 'Create Some Secrets' : 'Reveal My Secrets'}}</button>
-        <br><br>
       </div>
     </div>
     <a mat-button align="right" (click)="learnMore()">Learn more...   </a>

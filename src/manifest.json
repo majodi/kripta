@@ -3,7 +3,7 @@
     "name": "Kripta",
     "start_url": "/",
     "theme_color": "#f48c5b",
-    "background_color": "#ffffff",
+    "background_color": "#f0b371",
     "display": "standalone",
     "orientation": "any",
     "icons": [

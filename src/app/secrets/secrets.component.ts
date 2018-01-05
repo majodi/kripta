@@ -59,8 +59,8 @@ export class SecretsComponent implements OnInit, AfterViewInit, OnDestroy {
     })
   }
 
-  updateSecret(i) {
-    let secret = this.secrets[i]
+  updateSecret(i, secretRecord) {
+    let secret = secretRecord //this.secrets[i]
     let savedSecret = _.cloneDeep(secret)
     let now = new Date()          
     let dialogRef = this.openDialog(secret)
@@ -151,7 +151,7 @@ export class DialogUpdateSecretDialog {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private cs: CryptoService
   ) {
-    if(Object.keys(data).length === 0 && data.constructor === Object){
+    if(Object.keys(data.payload).length === 0 && data.payload.constructor === Object){
       this.newrecord = true
     }
   }
@@ -174,9 +174,12 @@ export class DialogUpdateSecretDialog {
     document.body.removeChild(element);
   }
 
-  openURL(URL){
+  openURL(url){
+    if (url.indexOf("://") == -1) {
+      url = 'https://'+url
+    }
     this.copyText(this.data.payload.password)
-    window.open(URL)
+    window.open(url)
   }
 
 }
